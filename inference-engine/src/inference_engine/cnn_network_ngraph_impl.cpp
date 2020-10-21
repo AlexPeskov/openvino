@@ -143,7 +143,8 @@ CNNNetworkNGraphImpl::CNNNetworkNGraphImpl(const std::shared_ptr<Function>& nGra
         if (output.second->getPrecision() == Precision::I64) {
             output.second->setPrecision(Precision::I32);
         } else if (output.second->getPrecision() != Precision::FP32 &&
-            output.second->getPrecision() != Precision::I32) {
+            output.second->getPrecision() != Precision::I32 &&
+            output.second->getPrecision() != Precision::U8) {
             output.second->setPrecision(Precision::FP32);
         }
     }
