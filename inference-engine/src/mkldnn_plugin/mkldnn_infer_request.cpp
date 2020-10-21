@@ -113,6 +113,21 @@ void MKLDNNPlugin::MKLDNNInferRequest::InferImpl() {
                 case InferenceEngine::Precision::I8:
                     pushInput<int8_t>(input.first, input.second);
                     break;
+                case InferenceEngine::Precision::I64: {
+                    // U64 is unsupported by mkldnn, so here we convert the blob and send I32
+                    iconv = InferenceEngine::make_shared_blob<std::int32_t>({InferenceEngine::Precision::I32,
+                                                                             input.second->getTensorDesc().getDims(),
+                                                                             input.second->getTensorDesc().getLayout()});
+                    convertedInputs.push_back(iconv);
+                    iconv->allocate();
+                    auto in = dynamic_cast<InferenceEngine::TBlob<std::int32_t> *>(iconv.get());
+                    if (in == nullptr)
+                        THROW_IE_EXCEPTION << "Cannot get TBlob";
+                    copyFrom<int64_t, std::int32_t>(input.second.get(), in->data());
+                    pushInput<std::int32_t>(input.first, iconv);
+                    }
+                    break;
+
                 case InferenceEngine::Precision::U16: {
                     // U16 is unsupported by mkldnn, so here we convert the blob and send I32
                     iconv = InferenceEngine::make_shared_blob<std::int32_t>({InferenceEngine::Precision::I32,
